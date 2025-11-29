@@ -1,53 +1,42 @@
 # sctp_module2_team3_mini_proj
 Architecture Diagram:
-                +-------------------+
-                |   Source Files    |
-                |  (CSV / Public)   |
-                +---------+---------+
-                          |
-        (Pure Python ingestion scripts)
-                          |
-                          v
-            +---------------------------+
-            |      Raw Data Layer       |
-            |    (BigQuery / Postgres)  |
-            +-------------+-------------+
-                          |
-                (dbt / SQL transforms)
-                          |
-                          v
-            +---------------------------+
-            |  Analytics Data Warehouse |
-            |       Star Schema         |
-            +-------------+-------------+
-                          |
-                (Data Quality Checks)
-          dbt tests + Great Expectations
-                          |
-                          v
-            +---------------------------+
-            |     Clean / Trusted       |
-            |       Data Models         |
-            +-------------+-------------+
-                          |
-                (Jupyter / SQL analysis)
-                          |
-                          v
-            +---------------------------+
-            |       EDA & Insights      |
-            +---------------------------+
+                 ┌──────────┐
+Source CSVs  →   │ DuckDB   │  (local landing + validation)
+                 └────┬─────┘
+                      │
+                      ▼
+                ┌────────────┐
+                │  Meltano   │  (ELT orchestration + Singer taps)
+                └────┬───────┘
+                     │
+                     ▼
+                ┌────────────┐
+                │ BigQuery   │  (cloud warehouse, curated + serving)
+                └────┬───────┘
+                     │
+          ┌──────────┴───────────┐
+          ▼                      ▼
+     ┌────────┐             ┌──────────┐
+     │  dbt   │             │ Dagster  │
+     │models  │             │pipelines │
+     └────────┘             └──────────┘
+          │                       │
+          └───────────┬───────────┘
+                      ▼
+               ┌───────────┐
+               │  Jupyter  │ (analysis, ML, notebooks)
+               └───────────┘
 
 
 Tech stack:
 | Component     | Tool                                      |
 | ------------- | ----------------------------------------- |
 | Ingestion     | Pure Python scripts (pandas / connectors) |
-| Storage       | GCS / BigQuery OR Postgres                |
-| Transform     | SQL + dbt                                 |
-| Orchestration | Airflow (Docker Compose)                  |
-| Data Quality  | Great Expectations + dbt tests            |
+| Local Storage | DuckDB                                    |
+| Data Warehouse| BigQuery                                  |
+| Transform     | dbt                                       |
+| Orchestration | Dagster                                   |
 | Analysis      | Jupyter Notebooks                         |
-| CI/CD         | GitHub Actions, pytest, pre-commit        |
 | Presentation  | Google Slides / PowerPoint                |
 
 
@@ -71,6 +60,7 @@ Tech stack:
 ```bash
    touch .env
 ```
+
 ```
 GCP_PROJECT=my-gcp-project
 GOOGLE_APPLICATION_CREDENTIALS=/path/to/service_account.json
